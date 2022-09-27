@@ -60,6 +60,7 @@ export class Upload extends EventEmitter {
   private createMultiPartPromise?: Promise<CreateMultipartUploadCommandOutput>;
 
   private uploadedParts: CompletedPart[] = [];
+  private alreadyUploadedParts: CompletedPart[] = [];
   private uploadId?: string;
   uploadEvent?: string;
 
@@ -74,6 +75,8 @@ export class Upload extends EventEmitter {
     this.partSize = options.partSize || this.partSize;
     this.leavePartsOnError = options.leavePartsOnError || this.leavePartsOnError;
     this.tags = options.tags || this.tags;
+    this.alreadyUploadedParts = options.alreadyUploadedParts || this.alreadyUploadedParts;
+    this.uploadId = options.previousUploadId || this.uploadId;
 
     this.client = options.client;
     this.params = options.params;
@@ -119,6 +122,7 @@ export class Upload extends EventEmitter {
         part: dataPart.partNumber,
         Key: this.params.Key,
         Bucket: this.params.Bucket,
+        UploadId: this.uploadId,
       });
     };
 
@@ -171,6 +175,7 @@ export class Upload extends EventEmitter {
       part: 1,
       Key: this.params.Key,
       Bucket: this.params.Bucket,
+      UploadId: this.uploadId,
     });
   }
 
@@ -184,7 +189,7 @@ export class Upload extends EventEmitter {
   }
 
   private async __doConcurrentUpload(dataFeeder: AsyncGenerator<RawDataPart, void, undefined>): Promise<void> {
-    for await (const dataPart of dataFeeder) {
+    dataFeederLoop: for await (const dataPart of dataFeeder) {
       if (this.uploadedParts.length > this.MAX_PARTS) {
         throw new Error(
           `Exceeded ${this.MAX_PARTS} as part of the upload to ${this.params.Key} and ${this.params.Bucket}.`
@@ -210,6 +215,20 @@ export class Upload extends EventEmitter {
 
         const partSize: number = byteLength(dataPart.data) || 0;
 
+        // if the part has already been uploaded then dont upload the part again
+        for (const { PartNumber: alreadyUploadedPartNumber, ETag: alreadyUploadedETag } of this.alreadyUploadedParts) {
+          if (alreadyUploadedPartNumber === dataPart.partNumber) {
+            this.bytesUploadedSoFar += partSize;
+
+            this.uploadedParts.push({
+              PartNumber: alreadyUploadedPartNumber,
+              ETag: alreadyUploadedETag,
+            });
+
+            continue dataFeederLoop;
+          }
+        }
+
         const requestHandler = this.client.config.requestHandler;
         const eventEmitter: EventEmitter | null = requestHandler instanceof EventEmitter ? requestHandler : null;
 
@@ -233,6 +252,7 @@ export class Upload extends EventEmitter {
             part: dataPart.partNumber,
             Key: this.params.Key,
             Bucket: this.params.Bucket,
+            UploadId: this.uploadId,
           });
         };
 
@@ -283,6 +303,7 @@ export class Upload extends EventEmitter {
           part: dataPart.partNumber,
           Key: this.params.Key,
           Bucket: this.params.Bucket,
+          UploadId: this.uploadId,
         });
       } catch (e) {
         // Failed to create multi-part or put

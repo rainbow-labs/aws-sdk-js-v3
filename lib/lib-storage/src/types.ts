@@ -1,4 +1,4 @@
-import { PutObjectCommandInput, S3Client, Tag } from "@aws-sdk/client-s3";
+import { CompletedPart, PutObjectCommandInput, S3Client, Tag } from "@aws-sdk/client-s3";
 
 export interface Progress {
   loaded?: number;
@@ -6,6 +6,7 @@ export interface Progress {
   part?: number;
   Key?: string;
   Bucket?: string;
+  UploadId?: string;
 }
 
 // string | Uint8Array | Buffer | Readable | ReadableStream | Blob.
@@ -53,4 +54,8 @@ export interface Options extends Partial<Configuration> {
    * This the target where we upload data.
    */
   client: S3Client;
+
+  alreadyUploadedParts?: CompletedPart[];
+
+  previousUploadId?: string;
 }
