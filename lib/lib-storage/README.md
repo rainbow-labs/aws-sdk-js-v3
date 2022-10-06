@@ -3,6 +3,12 @@
 [![NPM version](https://img.shields.io/npm/v/@aws-sdk/lib-storage/latest.svg)](https://www.npmjs.com/package/@aws-sdk/lib-storage)
 [![NPM downloads](https://img.shields.io/npm/dm/@aws-sdk/lib-storage.svg)](https://www.npmjs.com/package/@aws-sdk/lib-storage)
 
+#### Build
+
+```shell
+yarn clean && yarn build
+```
+
 ### Upload
 
 Upload allows for easy and efficient uploading of buffers, blobs, or streams, using a configurable amount of concurrency to perform multipart uploads where possible. This abstraction enables uploading large files or streams of unknown size due to the use of multipart uploads under the hood.
