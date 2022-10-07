@@ -3,5 +3,5 @@
  */
 export declare const ClientDefaultValues: {
   runtime: string;
-  lstatSync: () => void;
+  lstatSync: typeof import("fs").lstatSync;
 };

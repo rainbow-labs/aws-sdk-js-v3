@@ -1,6 +1,6 @@
 {
   "name": "@aws-sdk/lib-storage",
-  "version": "3.178.0",
+  "version": "3.178.2",
   "description": "Storage higher order operation",
   "main": "./dist-cjs/index.js",
   "module": "./dist-es/index.js",
@@ -57,7 +57,7 @@
   },
   "browser": {
     "./dist-es/runtimeConfig": "./dist-es/runtimeConfig.browser",
-    "fs": false,
+    "fs": true,
     "stream": "stream-browserify"
   },
   "react-native": {

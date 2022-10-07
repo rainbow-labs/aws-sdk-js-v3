@@ -1,7 +1,8 @@
+import { lstatSync } from "fs";
 /**
  * @internal
  */
 export declare const ClientDefaultValues: {
   runtime: string;
-  lstatSync: () => void;
+  lstatSync: typeof lstatSync;
 };

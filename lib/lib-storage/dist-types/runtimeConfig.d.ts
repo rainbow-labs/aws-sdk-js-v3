@@ -1,4 +1,3 @@
-/// <reference types="node" />
 import { lstatSync } from "fs";
 /**
  * @internal
